@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,9 +12,44 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const App = () => {
-  const [eggs, setEggs] = useState(300);
-  const [geese, setGeese] = useState<any[]>([]);
-  const [achievements, setAchievements] = useState<string[]>([]);
+  const [eggs, setEggs] = useState(() => {
+    const saved = localStorage.getItem('gooseBoxEggs');
+    return saved ? parseInt(saved) : 300;
+  });
+  const [geese, setGeese] = useState<any[]>(() => {
+    const saved = localStorage.getItem('gooseBoxGeese');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [achievements, setAchievements] = useState<string[]>(() => {
+    const saved = localStorage.getItem('gooseBoxAchievements');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [lastLogin, setLastLogin] = useState(() => {
+    const saved = localStorage.getItem('gooseBoxLastLogin');
+    return saved || '';
+  });
+  const [showDailyReward, setShowDailyReward] = useState(false);
+
+  useEffect(() => {
+    localStorage.setItem('gooseBoxEggs', eggs.toString());
+  }, [eggs]);
+
+  useEffect(() => {
+    localStorage.setItem('gooseBoxGeese', JSON.stringify(geese));
+  }, [geese]);
+
+  useEffect(() => {
+    localStorage.setItem('gooseBoxAchievements', JSON.stringify(achievements));
+  }, [achievements]);
+
+  useEffect(() => {
+    const today = new Date().toDateString();
+    if (lastLogin !== today) {
+      setShowDailyReward(true);
+      setLastLogin(today);
+      localStorage.setItem('gooseBoxLastLogin', today);
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -66,6 +101,8 @@ const App = () => {
                     setGeese={setGeese}
                     achievements={achievements}
                     setAchievements={setAchievements}
+                    showDailyReward={showDailyReward}
+                    setShowDailyReward={setShowDailyReward}
                   />
                 } 
               />
@@ -73,8 +110,11 @@ const App = () => {
                 path="/inventory" 
                 element={
                   <InventoryPage 
-                    geese={geese} 
+                    geese={geese}
+                    setGeese={setGeese}
                     achievements={achievements}
+                    eggs={eggs}
+                    setEggs={setEggs}
                   />
                 } 
               />

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import ChestAnimation from '@/components/ChestAnimation';
 import { toast } from 'sonner';
+import { sounds } from '@/utils/sounds';
 
 interface Goose {
   id: string;
@@ -87,11 +88,23 @@ interface HomePageProps {
   setGeese: (geese: Goose[]) => void;
   achievements: string[];
   setAchievements: (achievements: string[]) => void;
+  showDailyReward: boolean;
+  setShowDailyReward: (show: boolean) => void;
 }
 
-export default function HomePage({ eggs, setEggs, geese, setGeese, achievements, setAchievements }: HomePageProps) {
+export default function HomePage({ eggs, setEggs, geese, setGeese, achievements, setAchievements, showDailyReward, setShowDailyReward }: HomePageProps) {
   const [isOpening, setIsOpening] = useState(false);
   const [revealedGoose, setRevealedGoose] = useState<Goose | null>(null);
+
+  useEffect(() => {
+    if (showDailyReward) {
+      sounds.dailyReward();
+      toast.success('🎉 Ежедневная награда: +300 🥚', {
+        duration: 5000,
+      });
+      setEggs(eggs + 300);
+    }
+  }, [showDailyReward]);
 
   const getRandomGoose = (): Goose => {
     const random = Math.random() * 100;
@@ -138,16 +151,26 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
 
   const openChest = async () => {
     if (eggs < 100) {
+      sounds.error();
       toast.error('Недостаточно яиц! Нужно 100 🥚');
       return;
     }
 
+    sounds.chestOpen();
     setIsOpening(true);
     setEggs(eggs - 100);
 
     setTimeout(() => {
       const newGoose = getRandomGoose();
       setRevealedGoose(newGoose);
+      
+      const soundMap = {
+        common: sounds.rewardCommon,
+        rare: sounds.rewardRare,
+        epic: sounds.rewardEpic,
+        legendary: sounds.rewardLegendary,
+      };
+      soundMap[newGoose.rarity]();
       
       setEggs(prev => prev + newGoose.reward);
       
@@ -169,6 +192,13 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
   const closeReveal = () => {
     setIsOpening(false);
     setRevealedGoose(null);
+  };
+
+  const claimDailyReward = () => {
+    sounds.dailyReward();
+    setEggs(eggs + 300);
+    setShowDailyReward(false);
+    toast.success('Получено +300 🥚');
   };
 
   return (
@@ -276,6 +306,25 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
             </div>
             <Button onClick={closeReveal} className="w-full">
               Продолжить
+            </Button>
+          </Card>
+        </div>
+      )}
+
+      {showDailyReward && (
+        <div 
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
+        >
+          <Card className="p-12 max-w-md mx-4 text-center animate-scale-in shadow-2xl">
+            <div className="text-8xl mb-6 animate-bounce">🎁</div>
+            <h2 className="text-3xl font-bold mb-2">Ежедневная награда!</h2>
+            <p className="text-gray-600 mb-4">Добро пожаловать! Получи бонус за вход</p>
+            <div className="text-4xl font-bold text-amber-600 flex items-center justify-center gap-2 mb-6">
+              <span>+300</span>
+              <span className="text-5xl">🥚</span>
+            </div>
+            <Button onClick={claimDailyReward} className="w-full" size="lg">
+              Забрать награду
             </Button>
           </Card>
         </div>

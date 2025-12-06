@@ -1,6 +1,9 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Icon from '@/components/ui/icon';
+import { toast } from 'sonner';
+import { sounds } from '@/utils/sounds';
 
 interface Goose {
   id: string;
@@ -29,10 +32,13 @@ const RARITY_COLORS = {
 
 interface InventoryPageProps {
   geese: Goose[];
+  setGeese: (geese: Goose[]) => void;
   achievements: string[];
+  eggs: number;
+  setEggs: (eggs: number) => void;
 }
 
-export default function InventoryPage({ geese, achievements }: InventoryPageProps) {
+export default function InventoryPage({ geese, setGeese, achievements, eggs, setEggs }: InventoryPageProps) {
   const uniqueGeese = Array.from(new Set(geese.map(g => g.id))).map(id => {
     const goose = geese.find(g => g.id === id)!;
     const count = geese.filter(g => g.id === id).length;
@@ -41,6 +47,22 @@ export default function InventoryPage({ geese, achievements }: InventoryPageProp
 
   const totalGeese = geese.length;
   const uniqueCount = uniqueGeese.length;
+
+  const sellGoose = (gooseId: string) => {
+    const gooseToSell = geese.find(g => g.id === gooseId);
+    if (!gooseToSell) return;
+
+    const sellPrice = Math.floor(gooseToSell.reward * 0.5);
+    
+    const gooseIndex = geese.findIndex(g => g.id === gooseId);
+    const newGeese = [...geese];
+    newGeese.splice(gooseIndex, 1);
+    
+    setGeese(newGeese);
+    setEggs(eggs + sellPrice);
+    sounds.sell();
+    toast.success(`Продан ${gooseToSell.name} за ${sellPrice} 🥚`);
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -117,13 +139,26 @@ export default function InventoryPage({ geese, achievements }: InventoryPageProp
                       )}
                       <h4 className="font-bold text-lg mb-1">{goose.name}</h4>
                       <p className="text-sm text-gray-600 mb-3">{goose.description}</p>
-                      <div className="flex items-center justify-center gap-2">
-                        <Badge className={RARITY_COLORS[goose.rarity]}>
-                          {goose.rarity}
-                        </Badge>
-                        <Badge variant="secondary">
-                          x{goose.count}
-                        </Badge>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center gap-2">
+                          <Badge className={RARITY_COLORS[goose.rarity]}>
+                            {goose.rarity}
+                          </Badge>
+                          <Badge variant="secondary">
+                            x{goose.count}
+                          </Badge>
+                        </div>
+                        {goose.count > 1 && (
+                          <Button 
+                            onClick={() => sellGoose(goose.id)}
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs"
+                          >
+                            <Icon name="Coins" size={14} className="mr-1" />
+                            Продать за {Math.floor(goose.reward * 0.5)} 🥚
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </Card>
