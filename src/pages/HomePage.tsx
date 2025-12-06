@@ -8,21 +8,62 @@ import { toast } from 'sonner';
 interface Goose {
   id: string;
   name: string;
-  emoji: string;
+  emoji?: string;
+  image?: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   description: string;
+  reward: number;
 }
 
 const GOOSE_COLLECTION: Goose[] = [
-  { id: '1', name: 'Обычный гусь', emoji: '🪿', rarity: 'common', description: 'Самый обычный гусь' },
-  { id: '2', name: 'Белый гусь', emoji: '🦆', rarity: 'common', description: 'Белоснежный красавец' },
-  { id: '3', name: 'Утка-гусь', emoji: '🦢', rarity: 'common', description: 'Элегантный лебедь' },
-  { id: '4', name: 'Золотой гусь', emoji: '🐤', rarity: 'rare', description: 'Приносит удачу!' },
-  { id: '5', name: 'Космический гусь', emoji: '🚀', rarity: 'rare', description: 'Межгалактический путешественник' },
-  { id: '6', name: 'Королевский гусь', emoji: '👑', rarity: 'epic', description: 'Гусь голубых кровей' },
-  { id: '7', name: 'Радужный гусь', emoji: '🌈', rarity: 'epic', description: 'Переливается всеми цветами' },
-  { id: '8', name: 'Легендарный гусь', emoji: '⭐', rarity: 'legendary', description: 'Невероятно редкий!' },
-  { id: '9', name: 'Алмазный гусь', emoji: '💎', rarity: 'legendary', description: 'Сияет как бриллиант' },
+  { 
+    id: '1', 
+    name: 'Обычный гусь', 
+    image: 'https://cdn.poehali.dev/files/Без названия33_20251206194705.png',
+    rarity: 'common', 
+    description: 'Самый обычный гусь',
+    reward: 70
+  },
+  { 
+    id: '2', 
+    name: 'Толстый гусь', 
+    image: 'https://cdn.poehali.dev/files/Без названия34_20251206195508.png',
+    rarity: 'rare', 
+    description: 'Упитанный красавец',
+    reward: 140
+  },
+  { 
+    id: '3', 
+    name: 'Жуткий гусь', 
+    image: 'https://cdn.poehali.dev/files/Без названия37_20251206203115.png',
+    rarity: 'rare', 
+    description: 'Пугающий и загадочный',
+    reward: 300
+  },
+  { 
+    id: '4', 
+    name: 'Гигантский осьмигусь', 
+    image: 'https://cdn.poehali.dev/files/Без названия35_20251206201635.png',
+    rarity: 'epic', 
+    description: 'Морской гигант',
+    reward: 200
+  },
+  { 
+    id: '5', 
+    name: 'Квантовый гусь', 
+    image: 'https://cdn.poehali.dev/files/Без названия34_20251206200512.png',
+    rarity: 'epic', 
+    description: 'Существует в нескольких измерениях',
+    reward: 250
+  },
+  { 
+    id: '6', 
+    name: 'Лесной гусь', 
+    emoji: '🌲',
+    rarity: 'legendary', 
+    description: 'Хранитель древнего леса',
+    reward: 700
+  },
 ];
 
 const RARITY_CHANCES = {
@@ -81,7 +122,7 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
       newAchievements.push('collector_5');
       toast.success('🏆 Достижение: Опытный коллекционер!');
     }
-    if (uniqueGeese.size >= 9 && !achievements.includes('collector_all')) {
+    if (uniqueGeese.size >= 6 && !achievements.includes('collector_all')) {
       newAchievements.push('collector_all');
       toast.success('🏆 Достижение: Мастер коллекций!');
     }
@@ -108,6 +149,8 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
       const newGoose = getRandomGoose();
       setRevealedGoose(newGoose);
       
+      setEggs(prev => prev + newGoose.reward);
+      
       const newGeese = [...geese, { ...newGoose, caughtAt: Date.now() }];
       setGeese(newGeese);
       checkAchievements(newGeese);
@@ -119,7 +162,7 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
         legendary: 'ЛЕГЕНДАРНЫЙ ГУСЬ! 🌟🎊',
       };
 
-      toast.success(rarityMessages[newGoose.rarity]);
+      toast.success(`${rarityMessages[newGoose.rarity]} +${newGoose.reward} 🥚`);
     }, 2000);
   };
 
@@ -181,7 +224,15 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
                   owned > 0 ? 'bg-white shadow-lg' : 'bg-gray-100 opacity-50'
                 }`}
               >
-                <div className="text-5xl mb-2">{owned > 0 ? goose.emoji : '❓'}</div>
+                {goose.image ? (
+                  <img 
+                    src={owned > 0 ? goose.image : ''} 
+                    alt={goose.name}
+                    className={`w-24 h-24 mx-auto object-contain mb-2 ${owned === 0 ? 'filter blur-lg' : ''}`}
+                  />
+                ) : (
+                  <div className="text-5xl mb-2">{owned > 0 ? goose.emoji : '❓'}</div>
+                )}
                 <h3 className="font-semibold text-sm">{owned > 0 ? goose.name : '???'}</h3>
                 {owned > 0 && (
                   <div className="mt-2">
@@ -203,11 +254,25 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
           onClick={closeReveal}
         >
           <Card className="p-12 max-w-md mx-4 text-center animate-scale-in shadow-2xl">
-            <div className="text-8xl mb-6 animate-bounce">{revealedGoose.emoji}</div>
+            {revealedGoose.image ? (
+              <img 
+                src={revealedGoose.image} 
+                alt={revealedGoose.name}
+                className="w-48 h-48 mx-auto object-contain mb-6 animate-bounce"
+              />
+            ) : (
+              <div className="text-8xl mb-6 animate-bounce">{revealedGoose.emoji}</div>
+            )}
             <h2 className="text-3xl font-bold mb-2">{revealedGoose.name}</h2>
             <p className="text-gray-600 mb-4">{revealedGoose.description}</p>
-            <div className={`inline-block px-6 py-2 rounded-full text-white font-semibold bg-gradient-to-r ${RARITY_COLORS[revealedGoose.rarity]} mb-6`}>
-              {revealedGoose.rarity.toUpperCase()}
+            <div className="space-y-3 mb-6">
+              <div className={`inline-block px-6 py-2 rounded-full text-white font-semibold bg-gradient-to-r ${RARITY_COLORS[revealedGoose.rarity]}`}>
+                {revealedGoose.rarity.toUpperCase()}
+              </div>
+              <div className="text-2xl font-bold text-amber-600 flex items-center justify-center gap-2">
+                <span>+{revealedGoose.reward}</span>
+                <span className="text-3xl">🥚</span>
+              </div>
             </div>
             <Button onClick={closeReveal} className="w-full">
               Продолжить

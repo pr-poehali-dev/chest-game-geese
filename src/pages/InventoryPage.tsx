@@ -5,9 +5,11 @@ import Icon from '@/components/ui/icon';
 interface Goose {
   id: string;
   name: string;
-  emoji: string;
+  emoji?: string;
+  image?: string;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   description: string;
+  reward: number;
   caughtAt?: number;
 }
 
@@ -46,7 +48,7 @@ export default function InventoryPage({ geese, achievements }: InventoryPageProp
         <div className="text-center space-y-2">
           <h2 className="text-4xl font-bold text-gray-800">Твоя коллекция</h2>
           <p className="text-xl text-gray-600">
-            Собрано: {uniqueCount} из 9 уникальных гусей | Всего открыто: {totalGeese}
+            Собрано: {uniqueCount} из 6 уникальных гусей | Всего открыто: {totalGeese}
           </p>
         </div>
 
@@ -104,7 +106,15 @@ export default function InventoryPage({ geese, achievements }: InventoryPageProp
                 .map((goose) => (
                   <Card key={goose.id} className="p-6 hover:scale-105 transition-transform shadow-lg">
                     <div className="text-center">
-                      <div className="text-6xl mb-3">{goose.emoji}</div>
+                      {goose.image ? (
+                        <img 
+                          src={goose.image} 
+                          alt={goose.name}
+                          className="w-32 h-32 mx-auto object-contain mb-3"
+                        />
+                      ) : (
+                        <div className="text-6xl mb-3">{goose.emoji}</div>
+                      )}
                       <h4 className="font-bold text-lg mb-1">{goose.name}</h4>
                       <p className="text-sm text-gray-600 mb-3">{goose.description}</p>
                       <div className="flex items-center justify-center gap-2">
