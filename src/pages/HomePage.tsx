@@ -225,7 +225,7 @@ export default function HomePage({ eggs, setEggs, geese, setGeese, achievements,
                   Открываем...
                 </span>
               ) : (
-                <span className="flex items-center gap-3">
+                <span className="flex items-center gap-3 text-lime-700">
                   <span className="text-3xl">📦</span>
                   Открыть сундук (100 🥚)
                 </span>
